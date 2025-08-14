@@ -1,0 +1,615 @@
+#include <iostream>
+#include <iomanip>
+#include <string>
+using namespace std;
+
+// Base Bank Account Class
+class bank_Account {
+protected:
+    string* account_number;
+    string* name;           
+    double* balance;
+    string acc, n;
+    double b;
+
+public:
+    bank_Account() {
+        account_number = new string; 
+        name = new string;
+        balance = new double(0.0);
+    }
+    virtual ~bank_Account() {
+        delete account_number; 
+        delete name;
+        delete balance;
+    }
+
+    void setAccount_number(const string & acc){
+        *account_number = acc;
+    }
+    void setName(const string & n){
+        *name = n;
+    }
+    void setBalance(const double & b ){
+        *balance = b;
+    }
+    string getAccount_number(){
+        return *account_number;
+    }
+    string getName(){
+        return *name;
+    }
+    double getBalance(){
+        return *balance;
+    }
+
+    virtual void getinput() = 0;
+    virtual double getdeposit() = 0;
+    virtual double getwithdraw() = 0;
+    virtual string monthly() = 0;
+};
+
+// Checking Account Base
+class checking_account : public bank_Account{
+public:
+    virtual void writecheck() = 0;
+};
+
+// Service Charge Checking
+class service_charge_checking : public checking_account{
+protected:
+    double amount;
+    double ending_balance;
+    int check = 10;
+    float service  = 15.30;
+    int check_amount;
+public:
+    void getinput() override{
+        cout<<"Enter your account number: ";
+        cin>>acc;
+        setAccount_number(acc);
+        cout<<"Enter your name: ";
+        cin.ignore();
+        getline(cin,n);
+        setName(n);
+        cout<<"Enter your current balance: ";
+        cin>>b;
+        while (b<0){
+            cout<<"Enter a positive balance: ";
+            cin>>b;
+        }
+        setBalance(b);
+    }
+    double getdeposit() override{
+        cout<<"Enter the amount you want to deposit: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance += amount;
+        return *balance;
+    }
+    double getwithdraw() override{
+        cout<<"Enter the amount you want to withdraw: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance -= amount;
+        return *balance;
+    }
+    string monthly() override{
+        cout<<"The balance at the start: "<<*balance<<endl;
+        double deposit = getdeposit();
+        cout<<"The amount being deposited: "<<deposit<<endl;
+        double withdraw = getwithdraw();
+        cout<<"The amount after withdrawal: "<<withdraw<<endl;
+        cout<<"The service fees: "<<service<<endl;
+        ending_balance = *balance - service;
+        cout<<"The ending balance: "<<ending_balance<<endl;
+        return "";
+    }
+    void writecheck() override{
+        for(int i = 0 ; i< check ;i++){
+            cout<<"The amount you want to take: ";
+            cin>>check_amount;
+            while (check_amount<=0 || check_amount>*balance){
+                if(check_amount<=0){
+                    cout<<"Enter a valid amount: ";
+                    cin>>check_amount;
+                } else if (check_amount > *balance){
+                    cout<<"Insufficient balance: ";
+                    cin>>check_amount;
+                } 
+            }
+            *balance -= check_amount;
+            char in;
+            cout<<"Do you want to enter another check? (y/n): ";
+            cin>>in;
+            if(in != 'y' && in != 'Y'){
+                break;
+            }
+        }  
+    }
+};
+
+// No Service Charge Checking
+class no_service_charge_checking : public checking_account{
+protected:
+    double total_balance = 500000;
+    double min_balance = 1000;
+    double amount;
+    double ending_balance;
+    int check = 10;
+    int check_amount;
+    double interest_rate = 0.02;
+    double interest_amount;
+public:
+    void getinput() override{
+        cout<<"Enter your account number: ";
+        cin>>acc;
+        setAccount_number(acc);
+        cout<<"Enter your name: ";
+        cin.ignore();
+        getline(cin,n);
+        setName(n);
+
+        while(true){
+            cout<<"Enter your current balance: ";
+            cin>>b;
+            if(b > total_balance){
+                cout<<"Balance too high, limit is: "<<total_balance<<endl;
+            }
+            else if(b < min_balance){
+                cout<<"Balance too low, minimum is: "<<min_balance<<endl;
+            } else{
+                break;
+            }
+        }
+        setBalance(b);
+    }
+    double getdeposit() override{
+        cout<<"Enter the amount you want to deposit: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance += amount;
+        return *balance;
+    }
+    double getwithdraw() override{
+        cout<<"Enter the amount you want to withdraw: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance -= amount;
+        return *balance;
+    }
+    string monthly() override{
+        cout<<"The balance at the start: "<<*balance<<endl;
+        double deposit = getdeposit();
+        cout<<"The amount being deposited: "<<deposit<<endl;
+        double withdraw = getwithdraw();
+        cout<<"The amount after withdrawal: "<<withdraw<<endl;
+        interest_amount = *balance * interest_rate;
+        cout<<"Interest earned: "<<interest_amount<<endl;
+        ending_balance = *balance + interest_amount;
+        cout<<"The ending balance: "<<ending_balance<<endl;
+        return "";
+    }
+    void writecheck() override{
+        for(int i = 0 ; i< check ;i++){
+            cout<<"The amount you want to take: ";
+            cin>>check_amount;
+            while (check_amount<=0 || check_amount>*balance){
+                if(check_amount<=0){
+                    cout<<"Enter a valid amount: ";
+                    cin>>check_amount;
+                } else if (check_amount > *balance){
+                    cout<<"Insufficient balance: ";
+                    cin>>check_amount;
+                } 
+            }
+            *balance -= check_amount;
+            char in;
+            cout<<"Do you want to enter another check? (y/n): ";
+            cin>>in;
+            if(in != 'y' && in != 'Y'){
+                break;
+            }
+        }  
+    }
+};
+class high_Interest_Checking: public no_service_charge_checking{
+    double total_balance = 500000;
+    double min_balance = 10000;
+    double amount;
+    double ending_balance;
+    int check = 10;
+    int check_amount;
+    double interest_rate = 0.15;
+    double interest_amount;
+    public:
+    void getinput() override{
+        cout<<"Enter your account number: ";
+        cin>>acc;
+        setAccount_number(acc);
+        cout<<"Enter your name:";
+        cin.ignore();
+        getline(cin,n);
+        setName(n);
+        
+        cout<<"Enter your current balance: ";
+        cin>>b;
+        while (b<0){
+            cout<<"Enter a positive balance: ";
+            cin>>b;
+        }
+        while(true){
+            cout<<"Enter your current balance: ";
+            cin>>b;
+        if (b > total_balance){
+            cout<<"Balance too high you only have balance limit of: "<<total_balance;
+        }
+        else if (b < min_balance){
+            cout<<"Balance too low the minimum balance should be:"<<min_balance;
+        }
+        else{
+            break;
+        }
+        }
+        setBalance(b);
+    }
+    double getdeposit() override{
+        cout<<"Enter the amount you want to deposit:";
+        cin>>amount;
+        if(amount > 0){
+            *balance+=amount;
+            return *balance;
+            
+        }
+        else{
+        while (amount < 0){
+        cout<<"Enter a valid amount:";
+        cin>>amount;
+        }
+        }
+        return amount;
+    }
+    double getwithdraw() override{
+        cout<<"Enter the amount you want to withdraw:";
+        cin>>amount;
+        if (amount>0){
+             *balance-=amount;
+             return *balance;
+        }
+        else{
+        while (amount < 0){
+        cout<<"Enter a valid amount:";
+        cin>>amount;
+        }
+        }
+        return amount;
+    }
+ string monthly() override{
+     cout<<"The balance at the start:"<<*balance;
+     double deposit = getdeposit();
+     cout<<"The amount being deposited:"<<deposit;
+     double withdraw = getwithdraw();
+     cout<<"The amount after withdrawl: "<<withdraw;
+     interest_amount = *balance * interest_rate;
+      cout << "Interest charged: " << interest_amount << endl;
+      ending_balance = *balance - interest_amount;
+     cout<<"The ending balance: "<<ending_balance;
+     return "";
+ }
+ void writecheck() override{
+    for(int i = 0 ; i< check ;i++){
+        cout<<"The amount you want to take:";
+        cin>>check_amount;
+        while (check_amount<=0 || check_amount> *balance){
+        if(check_amount<=0){
+            cout<<"Enter a valid amount:";
+            cin>>amount;
+        }
+        else if (check_amount > *balance){
+            cout<<"Insufficient balance: ";
+            cin >>amount;
+        }
+        else{
+            
+        *balance -= check_amount;
+        break;
+        }
+             char in;
+      cout<<"Do you want to enter another check? (y/n)";
+      if(in != 'y' || in != 'Y'){
+          break;
+      }
+        }
+
+        
+    }  
+ }
+    
+};
+// Savings Account
+class savings_account : public bank_Account{
+protected:
+    double amount;
+    double ending_balance;
+    double interest_rate = 0.03;
+    double interest_amount;
+public:
+    void getinput() override{
+        cout<<"Enter your account number: ";
+        cin>>acc;
+        setAccount_number(acc);
+        cout<<"Enter your name: ";
+        cin.ignore();
+        getline(cin,n);
+        setName(n);
+
+        cout<<"Enter your current balance: ";
+        cin>>b;
+        while (b<0){
+            cout<<"Enter a positive balance: ";
+            cin>>b;
+        }
+        setBalance(b);
+    }
+    double getdeposit() override{
+        cout<<"Enter the amount you want to deposit: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance += amount;
+        return *balance;
+    }
+    double getwithdraw() override{
+        cout<<"Enter the amount you want to withdraw: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance -= amount;
+        return *balance;
+    }
+    string monthly() override{
+        cout<<"The balance at the start: "<<*balance<<endl;
+        double deposit = getdeposit();
+        cout<<"The amount being deposited: "<<deposit<<endl;
+        double withdraw = getwithdraw();
+        cout<<"The amount after withdrawal: "<<withdraw<<endl;
+        interest_amount = *balance * interest_rate;
+        cout<<"Interest earned: "<<interest_amount<<endl;
+        ending_balance = *balance + interest_amount;
+        cout<<"The ending balance: "<<ending_balance<<endl;
+        return "";
+    }
+};
+
+class high_interest_savingsaccount : public savings_account{
+protected:
+    double interest_rate_hi = 0.10;
+    double min_balance_hi = 10000;
+    double amount;
+public:
+    void getinput() override{
+        cout<<"Enter your account number: ";
+        cin>>acc;
+        setAccount_number(acc);
+        cout<<"Enter your name: ";
+        cin.ignore();
+        getline(cin,n);
+        setName(n);
+
+        while(true){
+            cout<<"Enter your current balance: ";
+            cin>>b;
+            if(b < min_balance_hi){
+                cout<<"Balance too low, minimum is: "<<min_balance_hi<<endl;
+            } else{
+                break;
+            }
+        }
+        setBalance(b);
+    }
+    double getdeposit() override{
+        cout<<"Enter the amount you want to deposit: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance += amount;
+        return *balance;
+    }
+    double getwithdraw() override{
+        cout<<"Enter the amount you want to withdraw: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance -= amount;
+        return *balance;
+    }
+    string monthly() override{
+        cout<<"The balance at the start: "<<*balance<<endl;
+        double deposit = getdeposit();
+        cout<<"The amount being deposited: "<<deposit<<endl;
+        double withdraw = getwithdraw();
+        cout<<"The amount after withdrawal: "<<withdraw<<endl;
+        interest_amount = *balance * interest_rate_hi;
+        cout<<"Interest earned: "<<interest_amount<<endl;
+        ending_balance = *balance + interest_amount;
+        cout<<"The ending balance: "<<ending_balance<<endl;
+        return "";
+    }
+};
+
+// Certificate of Deposit
+class certificate_deposit : public bank_Account{
+protected:
+    int maturity_month;
+    int current_month;
+    double interest_rate = 0.30;
+    double interest_amount;
+    double amount;
+public:
+    void getinput() override{
+        cout<<"Enter your account number: ";
+        cin>>acc;
+        setAccount_number(acc);
+        cout<<"Enter your name: ";
+        cin.ignore();
+        getline(cin,n);
+        setName(n);
+        cout<<"Enter your current balance: ";
+        cin>>b;
+        while(b<0){
+            cout<<"Enter a positive balance: ";
+            cin>>b;
+        }
+        setBalance(b);
+
+        cout<<"Enter current month (1-12): ";
+        cin>>current_month;
+        while(current_month<1 || current_month>12){
+            cout<<"Enter a valid month: ";
+            cin>>current_month;
+        }
+        cout<<"Enter maturity month (1-12): ";
+        cin>>maturity_month;
+        while(maturity_month<1 || maturity_month>12){
+            cout<<"Enter a valid month: ";
+            cin>>maturity_month;
+        }
+    }
+    double getdeposit() override{
+        cout<<"Enter the amount you want to deposit: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance += amount;
+        return *balance;
+    }
+    double getwithdraw() override{
+        cout<<"Enter the amount you want to withdraw: ";
+        cin>>amount;
+        while(amount < 0){
+            cout<<"Enter a valid amount: ";
+            cin>>amount;
+        }
+        *balance -= amount;
+        return *balance;
+    }
+    string monthly() override{
+        cout<<"The balance at the start: "<<*balance<<endl;
+        double deposit = getdeposit();
+        cout<<"The amount being deposited: "<<deposit<<endl;
+        double withdraw = getwithdraw();
+        cout<<"The amount after withdrawal: "<<withdraw<<endl;
+        interest_amount = *balance * interest_rate;
+        cout<<"Interest earned: "<<interest_amount<<endl;
+        double ending_balance = *balance + interest_amount;
+        cout<<"The ending balance: "<<ending_balance<<endl;
+        return "";
+    }
+    void checkMaturity() {
+        if(current_month >= maturity_month){
+            cout<<"CD has matured. Interest will be added.\n";
+            double interest = (*balance) * interest_rate;
+            *balance += interest;
+        } else {
+            cout<<"CD has not matured yet.\n";
+        }
+    }
+};
+
+int main() {
+    savings_account s;
+    service_charge_checking sc;
+    no_service_charge_checking c;
+    high_Interest_Checking hc;  // Added high interest checking
+    certificate_deposit cd;
+
+    int choice, accType;
+
+    do {
+        cout<<"\n==== BANK SYSTEM MENU ====\n";
+        cout<<"1. Open Account\n";
+        cout<<"2. Withdraw Funds\n";
+        cout<<"3. Deposit Funds\n";
+        cout<<"4. Apply Interest (Savings/CD only)\n";
+        cout<<"5. Check Balance\n";
+        cout<<"6. Exit\n";
+        cout<<"Choose an option: ";
+        cin>>choice;
+
+        if(choice == 6) break;
+
+        cout<<"\nSelect account type:\n";
+        cout<<"1. Savings\n";
+        cout<<"2. Checking (No Service Charge)\n";
+        cout<<"3. High Interest Checking\n";
+        cout<<"4. Certificate Deposit\n";
+        cout<<"5. Checking (Service Charge)\n";
+        cout<<"Enter choice: ";
+        cin>>accType;
+
+        switch(choice){
+            case 1:
+                if(accType==1) s.getinput();
+                else if(accType==2) c.getinput();
+                else if(accType==3) hc.getinput();
+                else if(accType==4) cd.getinput();
+                else if(accType==5) cd.getinput();
+                break;
+            case 2: 
+                if(accType==1) s.getwithdraw();
+                else if(accType==2) c.getwithdraw();
+                else if(accType==3) hc.getwithdraw();
+                else if(accType==4) cd.getwithdraw();
+                else if(accType==5) cd.getwithdraw();
+                break;
+            case 3: 
+                if(accType==1) s.getdeposit();
+                else if(accType==2) c.getdeposit();
+                else if(accType==3) hc.getdeposit();
+                else if(accType==4) cd.getdeposit();
+                break;
+            case 4:
+                if(accType==1) s.monthly();
+                else if(accType==3) hc.monthly();
+                else if(accType==4) cd.monthly();
+                else cout<<"This account type doesn't earn interest.\n";
+                break;
+            case 5:
+                if(accType==1) cout<<"Balance: "<<s.getBalance()<<endl;
+                else if(accType==2) cout<<"Balance: "<<c.getBalance()<<endl;
+                else if(accType==3) cout<<"Balance: "<<hc.getBalance()<<endl;
+                else if(accType==4) cout<<"Balance: "<<cd.getBalance()<<endl;
+                else if(accType==5) cout<<"Balance: "<<cd.getBalance()<<endl;
+                
+                break;
+            default:
+                cout<<"Invalid choice!\n";
+        }
+    } while(true);
+
+    cout<<"Thank you for using the Bank System!\n";
+    return 0;
+}
+
